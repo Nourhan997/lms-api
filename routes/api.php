@@ -10,6 +10,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Instructor\InstructorContentController;
 use App\Http\Controllers\Instructor\InstructorLessonController;
 use App\Http\Controllers\Instructor\InstructorSectionController;
+use App\Http\Controllers\Student\EnrollmentController;
 use App\Http\Controllers\Student\PublicCourseController;
 use Illuminate\Support\Facades\Route;
 
@@ -56,6 +57,14 @@ Route::prefix('v1')->group(function (): void {
         Route::post('lessons/{lesson}/contents', [AdminContentController::class, 'store']);
         Route::put('lessons/{lesson}/contents/{content}', [AdminContentController::class, 'update']);
         Route::delete('lessons/{lesson}/contents/{content}', [AdminContentController::class, 'destroy']);
+    });
+
+    Route::prefix('student')->middleware(['auth:sanctum', 'role:student'])->group(function (): void {
+        Route::post('courses/{course}/enroll', [EnrollmentController::class, 'enroll']);
+        Route::get('enrollments', [EnrollmentController::class, 'index']);
+        Route::get('enrollments/{enrollment}', [EnrollmentController::class, 'show']);
+        Route::get('enrollments/{enrollment}/progress', [EnrollmentController::class, 'progress']);
+        Route::post('lessons/{lesson}/complete', [EnrollmentController::class, 'completeLesson']);
     });
 
     Route::prefix('instructor')->middleware(['auth:sanctum', 'role:instructor'])->group(function (): void {
