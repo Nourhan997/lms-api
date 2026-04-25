@@ -10,8 +10,10 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Instructor\InstructorContentController;
 use App\Http\Controllers\Instructor\InstructorLessonController;
 use App\Http\Controllers\Instructor\InstructorSectionController;
+use App\Http\Controllers\Instructor\InstructorQuizController;
 use App\Http\Controllers\Student\EnrollmentController;
 use App\Http\Controllers\Student\PublicCourseController;
+use App\Http\Controllers\Student\StudentQuizController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
@@ -65,6 +67,11 @@ Route::prefix('v1')->group(function (): void {
         Route::get('enrollments/{enrollment}', [EnrollmentController::class, 'show']);
         Route::get('enrollments/{enrollment}/progress', [EnrollmentController::class, 'progress']);
         Route::post('lessons/{lesson}/complete', [EnrollmentController::class, 'completeLesson']);
+
+        // Quiz routes
+        Route::get('sections/{section}/quiz', [StudentQuizController::class, 'show']);
+        Route::post('quizzes/{quiz}/attempt', [StudentQuizController::class, 'attempt']);
+        Route::get('quizzes/{quiz}/attempts', [StudentQuizController::class, 'attempts']);
     });
 
     Route::prefix('instructor')->middleware(['auth:sanctum', 'role:instructor'])->group(function (): void {
@@ -103,6 +110,24 @@ Route::prefix('v1')->group(function (): void {
         Route::put('lessons/{lesson}/contents/{content}', [InstructorContentController::class, 'update'])
             ->middleware('course.owner');
         Route::delete('lessons/{lesson}/contents/{content}', [InstructorContentController::class, 'destroy'])
+            ->middleware('course.owner');
+
+        // Quiz (nested under sections, ownership checked)
+        Route::get('sections/{section}/quiz', [InstructorQuizController::class, 'show'])
+            ->middleware('course.owner');
+        Route::post('sections/{section}/quiz', [InstructorQuizController::class, 'store'])
+            ->middleware('course.owner');
+        Route::put('sections/{section}/quiz', [InstructorQuizController::class, 'update'])
+            ->middleware('course.owner');
+        Route::delete('sections/{section}/quiz', [InstructorQuizController::class, 'destroy'])
+            ->middleware('course.owner');
+
+        // Questions (nested under quizzes, ownership checked via quiz → section → course)
+        Route::post('quizzes/{quiz}/questions', [InstructorQuizController::class, 'storeQuestion'])
+            ->middleware('course.owner');
+        Route::put('quizzes/{quiz}/questions/{question}', [InstructorQuizController::class, 'updateQuestion'])
+            ->middleware('course.owner');
+        Route::delete('quizzes/{quiz}/questions/{question}', [InstructorQuizController::class, 'destroyQuestion'])
             ->middleware('course.owner');
     });
 });

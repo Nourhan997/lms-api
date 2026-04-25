@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use App\Models\Course;
 use App\Models\Lesson;
+use App\Models\Quiz;
 use App\Models\Section;
 use Closure;
 use Illuminate\Http\Request;
@@ -41,6 +42,10 @@ class CheckCourseOwnership
 
         if ($request->route('lesson') instanceof Lesson) {
             return $request->route('lesson')->section->course;
+        }
+
+        if ($request->route('quiz') instanceof Quiz) {
+            return $request->route('quiz')->section->course;
         }
 
         return null;
