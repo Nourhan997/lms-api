@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Admin\AdminContentController;
 use App\Http\Controllers\Admin\AdminCourseController;
 use App\Http\Controllers\Admin\AdminLessonController;
+use App\Http\Controllers\Admin\AdminPlacementController;
 use App\Http\Controllers\Admin\AdminSectionController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Instructor\InstructorContentController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\Instructor\InstructorLessonController;
 use App\Http\Controllers\Instructor\InstructorSectionController;
 use App\Http\Controllers\Instructor\InstructorQuizController;
 use App\Http\Controllers\Student\EnrollmentController;
+use App\Http\Controllers\Student\PlacementController;
 use App\Http\Controllers\Student\PublicCourseController;
 use App\Http\Controllers\Student\StudentQuizController;
 use Illuminate\Support\Facades\Route;
@@ -38,6 +40,26 @@ Route::prefix('v1')->group(function (): void {
         Route::apiResource('courses', AdminCourseController::class);
         Route::post('courses/{course}/publish', [AdminCourseController::class, 'publish']);
         Route::post('courses/{course}/archive', [AdminCourseController::class, 'archive']);
+
+        // Placement quizzes
+        Route::get('placement-quizzes', [AdminPlacementController::class, 'index']);
+        Route::post('placement-quizzes', [AdminPlacementController::class, 'store']);
+        Route::put('placement-quizzes/{placementQuiz}', [AdminPlacementController::class, 'update']);
+        Route::delete('placement-quizzes/{placementQuiz}', [AdminPlacementController::class, 'destroy']);
+
+        // Placement questions
+        Route::post('placement-quizzes/{placementQuiz}/questions', [AdminPlacementController::class, 'storeQuestion']);
+        Route::put('placement-quizzes/{placementQuiz}/questions/{placementQuestion}', [AdminPlacementController::class, 'updateQuestion']);
+        Route::delete('placement-quizzes/{placementQuiz}/questions/{placementQuestion}', [AdminPlacementController::class, 'destroyQuestion']);
+
+        // Placement results (score ranges)
+        Route::get('placement-quizzes/{placementQuiz}/results', [AdminPlacementController::class, 'indexResults']);
+        Route::post('placement-quizzes/{placementQuiz}/results', [AdminPlacementController::class, 'storeResult']);
+        Route::put('placement-quizzes/{placementQuiz}/results/{placementResult}', [AdminPlacementController::class, 'updateResult']);
+        Route::delete('placement-quizzes/{placementQuiz}/results/{placementResult}', [AdminPlacementController::class, 'destroyResult']);
+
+        // Placement scores report
+        Route::get('placement-scores', [AdminPlacementController::class, 'scores']);
 
         // Sections (nested under courses)
         Route::post('courses/{course}/sections/reorder', [AdminSectionController::class, 'reorder']);
@@ -72,6 +94,11 @@ Route::prefix('v1')->group(function (): void {
         Route::get('sections/{section}/quiz', [StudentQuizController::class, 'show']);
         Route::post('quizzes/{quiz}/attempt', [StudentQuizController::class, 'attempt']);
         Route::get('quizzes/{quiz}/attempts', [StudentQuizController::class, 'attempts']);
+
+        // Placement routes (result before {subject} to avoid conflict)
+        Route::get('placement/result', [PlacementController::class, 'result']);
+        Route::get('placement/{subject}', [PlacementController::class, 'show']);
+        Route::post('placement/{subject}/submit', [PlacementController::class, 'submit']);
     });
 
     Route::prefix('instructor')->middleware(['auth:sanctum', 'role:instructor'])->group(function (): void {

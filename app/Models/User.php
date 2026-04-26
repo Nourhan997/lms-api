@@ -8,6 +8,7 @@ use App\Enums\CourseLanguage;
 use App\Enums\UserRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -27,6 +28,10 @@ class User extends Authenticatable
         'bio',
         'preferred_language',
         'is_active',
+        'placement_completed_at',
+        'placement_score',
+        'placement_label',
+        'suggested_course_id',
     ];
 
     protected $hidden = [
@@ -37,11 +42,13 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at'  => 'datetime',
-            'password'           => 'hashed',
-            'role'               => UserRole::class,
-            'preferred_language' => CourseLanguage::class,
-            'is_active'          => 'boolean',
+            'email_verified_at'      => 'datetime',
+            'password'               => 'hashed',
+            'role'                   => UserRole::class,
+            'preferred_language'     => CourseLanguage::class,
+            'is_active'              => 'boolean',
+            'placement_completed_at' => 'datetime',
+            'placement_score'        => 'integer',
         ];
     }
 
@@ -78,5 +85,10 @@ class User extends Authenticatable
     public function blogPosts(): HasMany
     {
         return $this->hasMany(BlogPost::class, 'author_id');
+    }
+
+    public function suggestedCourse(): BelongsTo
+    {
+        return $this->belongsTo(Course::class, 'suggested_course_id');
     }
 }
