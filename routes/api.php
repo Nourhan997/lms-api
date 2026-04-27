@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Admin\AdminContentController;
 use App\Http\Controllers\Admin\AdminCourseController;
 use App\Http\Controllers\Admin\AdminLessonController;
+use App\Http\Controllers\Admin\AdminPaymentController;
 use App\Http\Controllers\Admin\AdminPlacementController;
 use App\Http\Controllers\Admin\AdminSectionController;
 use App\Http\Controllers\Auth\AuthController;
@@ -12,7 +13,10 @@ use App\Http\Controllers\Instructor\InstructorContentController;
 use App\Http\Controllers\Instructor\InstructorLessonController;
 use App\Http\Controllers\Instructor\InstructorSectionController;
 use App\Http\Controllers\Instructor\InstructorQuizController;
+use App\Http\Controllers\Public\CertificateVerificationController;
+use App\Http\Controllers\Student\CertificateController;
 use App\Http\Controllers\Student\EnrollmentController;
+use App\Http\Controllers\Student\PaymentController;
 use App\Http\Controllers\Student\PlacementController;
 use App\Http\Controllers\Student\PublicCourseController;
 use App\Http\Controllers\Student\StudentQuizController;
@@ -23,6 +27,7 @@ Route::prefix('v1')->group(function (): void {
     Route::prefix('public')->group(function (): void {
         Route::get('courses', [PublicCourseController::class, 'index']);
         Route::get('courses/{slug}', [PublicCourseController::class, 'show']);
+        Route::get('certificates/{uid}', [CertificateVerificationController::class, 'show']);
     });
 
     Route::prefix('auth')->group(function (): void {
@@ -61,6 +66,11 @@ Route::prefix('v1')->group(function (): void {
         // Placement scores report
         Route::get('placement-scores', [AdminPlacementController::class, 'scores']);
 
+        // Payments (report before {payment} to avoid route conflict)
+        Route::get('payments/report', [AdminPaymentController::class, 'report']);
+        Route::get('payments', [AdminPaymentController::class, 'index']);
+        Route::post('payments/{payment}/refund', [AdminPaymentController::class, 'refund']);
+
         // Sections (nested under courses)
         Route::post('courses/{course}/sections/reorder', [AdminSectionController::class, 'reorder']);
         Route::get('courses/{course}/sections', [AdminSectionController::class, 'index']);
@@ -85,10 +95,19 @@ Route::prefix('v1')->group(function (): void {
 
     Route::prefix('student')->middleware(['auth:sanctum', 'role:student'])->group(function (): void {
         Route::post('courses/{course}/enroll', [EnrollmentController::class, 'enroll']);
+        Route::post('courses/{course}/checkout', [PaymentController::class, 'checkout']);
         Route::get('enrollments', [EnrollmentController::class, 'index']);
         Route::get('enrollments/{enrollment}', [EnrollmentController::class, 'show']);
         Route::get('enrollments/{enrollment}/progress', [EnrollmentController::class, 'progress']);
         Route::post('lessons/{lesson}/complete', [EnrollmentController::class, 'completeLesson']);
+
+        // Payments
+        Route::post('payments/{payment}/confirm', [PaymentController::class, 'confirm']);
+        Route::get('payments', [PaymentController::class, 'index']);
+
+        // Certificates
+        Route::get('certificates', [CertificateController::class, 'index']);
+        Route::get('certificates/{uid}/download', [CertificateController::class, 'download']);
 
         // Quiz routes
         Route::get('sections/{section}/quiz', [StudentQuizController::class, 'show']);

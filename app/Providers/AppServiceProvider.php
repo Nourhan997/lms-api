@@ -7,10 +7,12 @@ namespace App\Providers;
 use App\Events\CourseCompleted;
 use App\Events\CourseCreated;
 use App\Events\CoursePublished;
+use App\Events\PaymentCompleted;
 use App\Events\StudentEnrolled;
 use App\Listeners\ClearCourseCache;
 use App\Listeners\IssueCertificate;
 use App\Listeners\SendEnrollmentConfirmationEmail;
+use App\Listeners\SendPaymentReceiptEmail;
 use App\Listeners\ShowNextCoursePrompt;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
@@ -29,5 +31,6 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(StudentEnrolled::class, SendEnrollmentConfirmationEmail::class);
         Event::listen(CourseCompleted::class, IssueCertificate::class);
         Event::listen(CourseCompleted::class, ShowNextCoursePrompt::class);
+        Event::listen(PaymentCompleted::class, SendPaymentReceiptEmail::class);
     }
 }

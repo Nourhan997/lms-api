@@ -15,6 +15,7 @@ use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Lesson;
 use App\Models\LessonProgress;
+use App\Models\Payment;
 use App\Models\Section;
 use App\Models\User;
 use Illuminate\Support\Collection;
@@ -136,6 +137,22 @@ class EnrollmentService
         return Enrollment::where('user_id', $user->id)
             ->where('course_id', $course->id)
             ->exists();
+    }
+
+    public function enrollFromPayment(Payment $payment): Enrollment
+    {
+        $enrollment = Enrollment::create([
+            'user_id'    => $payment->user_id,
+            'course_id'  => $payment->course_id,
+            'payment_id' => $payment->id,
+            'status'     => EnrollmentStatus::Active,
+            'enrolled_at' => now(),
+        ]);
+
+        $payment->loadMissing(['course', 'user']);
+        event(new StudentEnrolled($payment->course, $payment->user));
+
+        return $enrollment->load('course');
     }
 
     private function buildSectionProgress(Section $section, Collection $completedMap): array
