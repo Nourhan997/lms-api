@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Admin\AdminBlogController;
 use App\Http\Controllers\Admin\AdminContentController;
 use App\Http\Controllers\Admin\AdminCourseController;
 use App\Http\Controllers\Admin\AdminLessonController;
@@ -13,9 +14,11 @@ use App\Http\Controllers\Instructor\InstructorContentController;
 use App\Http\Controllers\Instructor\InstructorLessonController;
 use App\Http\Controllers\Instructor\InstructorSectionController;
 use App\Http\Controllers\Instructor\InstructorQuizController;
+use App\Http\Controllers\Public\BlogController;
 use App\Http\Controllers\Public\CertificateVerificationController;
 use App\Http\Controllers\Student\CertificateController;
 use App\Http\Controllers\Student\EnrollmentController;
+use App\Http\Controllers\Student\NotificationController;
 use App\Http\Controllers\Student\PaymentController;
 use App\Http\Controllers\Student\PlacementController;
 use App\Http\Controllers\Student\PublicCourseController;
@@ -28,6 +31,8 @@ Route::prefix('v1')->group(function (): void {
         Route::get('courses', [PublicCourseController::class, 'index']);
         Route::get('courses/{slug}', [PublicCourseController::class, 'show']);
         Route::get('certificates/{uid}', [CertificateVerificationController::class, 'show']);
+        Route::get('blog', [BlogController::class, 'index']);
+        Route::get('blog/{slug}', [BlogController::class, 'show']);
     });
 
     Route::prefix('auth')->group(function (): void {
@@ -91,6 +96,15 @@ Route::prefix('v1')->group(function (): void {
         Route::post('lessons/{lesson}/contents', [AdminContentController::class, 'store']);
         Route::put('lessons/{lesson}/contents/{content}', [AdminContentController::class, 'update']);
         Route::delete('lessons/{lesson}/contents/{content}', [AdminContentController::class, 'destroy']);
+
+        // Blog posts
+        Route::get('blog', [AdminBlogController::class, 'index']);
+        Route::post('blog', [AdminBlogController::class, 'store']);
+        Route::get('blog/{post}', [AdminBlogController::class, 'show']);
+        Route::put('blog/{post}', [AdminBlogController::class, 'update']);
+        Route::delete('blog/{post}', [AdminBlogController::class, 'destroy']);
+        Route::post('blog/{post}/publish', [AdminBlogController::class, 'publish']);
+        Route::post('blog/{post}/unpublish', [AdminBlogController::class, 'unpublish']);
     });
 
     Route::prefix('student')->middleware(['auth:sanctum', 'role:student'])->group(function (): void {
@@ -118,6 +132,13 @@ Route::prefix('v1')->group(function (): void {
         Route::get('placement/result', [PlacementController::class, 'result']);
         Route::get('placement/{subject}', [PlacementController::class, 'show']);
         Route::post('placement/{subject}/submit', [PlacementController::class, 'submit']);
+
+        // Notifications (unread-count before {notification} to avoid conflict)
+        Route::get('notifications/unread-count', [NotificationController::class, 'unreadCount']);
+        Route::get('notifications', [NotificationController::class, 'index']);
+        Route::post('notifications/read-all', [NotificationController::class, 'readAll']);
+        Route::post('notifications/{notification}/read', [NotificationController::class, 'read']);
+        Route::delete('notifications/{notification}', [NotificationController::class, 'destroy']);
     });
 
     Route::prefix('instructor')->middleware(['auth:sanctum', 'role:instructor'])->group(function (): void {

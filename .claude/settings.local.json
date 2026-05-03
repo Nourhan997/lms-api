@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Read(//c/Users/Nourhan/Desktop/LMS/**)",
-      "Bash(composer create-project *)"
+      "Bash(composer create-project *)",
+      "Bash(docker exec *)",
+      "Bash(php --version)"
     ]
   }
 }
