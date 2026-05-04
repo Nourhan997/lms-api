@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Auth;
 
 use App\Enums\UserRole;
+use App\Exceptions\AccountSuspendedException;
 use App\Models\User;
 use App\Notifications\WelcomeNotification;
 use Illuminate\Support\Facades\Hash;
@@ -40,6 +41,10 @@ class AuthService
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
+        }
+
+        if (! $user->is_active) {
+            throw new AccountSuspendedException();
         }
 
         return [

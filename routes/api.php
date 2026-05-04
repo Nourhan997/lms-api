@@ -5,10 +5,13 @@ declare(strict_types=1);
 use App\Http\Controllers\Admin\AdminBlogController;
 use App\Http\Controllers\Admin\AdminContentController;
 use App\Http\Controllers\Admin\AdminCourseController;
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminInstructorController;
 use App\Http\Controllers\Admin\AdminLessonController;
 use App\Http\Controllers\Admin\AdminPaymentController;
 use App\Http\Controllers\Admin\AdminPlacementController;
 use App\Http\Controllers\Admin\AdminSectionController;
+use App\Http\Controllers\Admin\AdminStudentController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Instructor\InstructorContentController;
 use App\Http\Controllers\Instructor\InstructorLessonController;
@@ -105,6 +108,29 @@ Route::prefix('v1')->group(function (): void {
         Route::delete('blog/{post}', [AdminBlogController::class, 'destroy']);
         Route::post('blog/{post}/publish', [AdminBlogController::class, 'publish']);
         Route::post('blog/{post}/unpublish', [AdminBlogController::class, 'unpublish']);
+
+        // Dashboard and Reports (export before {student} to avoid conflicts)
+        Route::get('dashboard', [AdminDashboardController::class, 'overview']);
+        Route::get('reports/revenue', [AdminDashboardController::class, 'revenue']);
+        Route::get('reports/enrollments', [AdminDashboardController::class, 'enrollments']);
+        Route::get('reports/completions', [AdminDashboardController::class, 'completions']);
+        Route::get('reports/top-courses', [AdminDashboardController::class, 'topCourses']);
+        Route::get('reports/students', [AdminDashboardController::class, 'students']);
+        Route::get('reports/export/students', [AdminDashboardController::class, 'exportStudents']);
+        Route::get('reports/export/payments', [AdminDashboardController::class, 'exportPayments']);
+
+        // Students
+        Route::get('students', [AdminStudentController::class, 'index']);
+        Route::get('students/{user}', [AdminStudentController::class, 'show']);
+        Route::post('students/{user}/suspend', [AdminStudentController::class, 'suspend']);
+        Route::post('students/{user}/activate', [AdminStudentController::class, 'activate']);
+
+        // Instructors
+        Route::get('instructors', [AdminInstructorController::class, 'index']);
+        Route::post('instructors', [AdminInstructorController::class, 'store']);
+        Route::put('instructors/{user}', [AdminInstructorController::class, 'update']);
+        Route::post('instructors/{user}/suspend', [AdminInstructorController::class, 'suspend']);
+        Route::post('instructors/{user}/activate', [AdminInstructorController::class, 'activate']);
     });
 
     Route::prefix('student')->middleware(['auth:sanctum', 'role:student'])->group(function (): void {
