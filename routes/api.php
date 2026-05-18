@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Admin\AdminBlogController;
+use App\Http\Controllers\Admin\AdminSettingsController;
 use App\Http\Controllers\Admin\AdminContentController;
 use App\Http\Controllers\Admin\AdminCourseController;
 use App\Http\Controllers\Admin\AdminDashboardController;
@@ -19,6 +20,7 @@ use App\Http\Controllers\Instructor\InstructorSectionController;
 use App\Http\Controllers\Instructor\InstructorQuizController;
 use App\Http\Controllers\Public\BlogController;
 use App\Http\Controllers\Public\CertificateVerificationController;
+use App\Http\Controllers\Public\PublicSettingsController;
 use App\Http\Controllers\Student\CertificateController;
 use App\Http\Controllers\Student\EnrollmentController;
 use App\Http\Controllers\Student\NotificationController;
@@ -36,6 +38,7 @@ Route::prefix('v1')->group(function (): void {
         Route::get('certificates/{uid}', [CertificateVerificationController::class, 'show']);
         Route::get('blog', [BlogController::class, 'index']);
         Route::get('blog/{slug}', [BlogController::class, 'show']);
+        Route::get('settings', [PublicSettingsController::class, 'index']);
     });
 
     Route::prefix('auth')->group(function (): void {
@@ -108,6 +111,12 @@ Route::prefix('v1')->group(function (): void {
         Route::delete('blog/{post}', [AdminBlogController::class, 'destroy']);
         Route::post('blog/{post}/publish', [AdminBlogController::class, 'publish']);
         Route::post('blog/{post}/unpublish', [AdminBlogController::class, 'unpublish']);
+
+        // Settings
+        Route::get('settings', [AdminSettingsController::class, 'index']);
+        Route::put('settings', [AdminSettingsController::class, 'update']);
+        Route::post('settings/logo', [AdminSettingsController::class, 'uploadLogo']);
+        Route::post('settings/favicon', [AdminSettingsController::class, 'uploadFavicon']);
 
         // Dashboard and Reports (export before {student} to avoid conflicts)
         Route::get('dashboard', [AdminDashboardController::class, 'overview']);
