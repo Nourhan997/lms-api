@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\AdminPaymentResource;
 use App\Models\Payment;
+use App\Services\Admin\AuditService;
 use App\Services\Payment\PaymentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,8 +16,13 @@ class AdminPaymentController extends Controller
 {
     public function __construct(
         private readonly PaymentService $paymentService,
+        private readonly AuditService $auditService,
     ) {}
 
+    /**
+     * @param  Request      $request
+     * @return JsonResponse
+     */
     public function index(Request $request): JsonResponse
     {
         $filters  = $request->only(['status', 'course_id', 'user_id', 'date_from', 'date_to']);
@@ -35,9 +41,15 @@ class AdminPaymentController extends Controller
         ]);
     }
 
+    /**
+     * @param  Payment      $payment
+     * @return JsonResponse
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     */
     public function refund(Payment $payment): JsonResponse
     {
         $payment = $this->paymentService->refund($payment);
+        $this->auditService->log('payment.refunded', $payment);
 
         return response()->json([
             'success' => true,
@@ -47,6 +59,9 @@ class AdminPaymentController extends Controller
         ]);
     }
 
+    /**
+     * @return JsonResponse
+     */
     public function report(): JsonResponse
     {
         $report = $this->paymentService->getReport();

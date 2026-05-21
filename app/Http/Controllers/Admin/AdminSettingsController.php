@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateSettingsRequest;
 use App\Http\Requests\Admin\UploadFaviconRequest;
 use App\Http\Requests\Admin\UploadLogoRequest;
+use App\Services\Admin\AuditService;
 use App\Services\Admin\SettingsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
@@ -16,8 +17,12 @@ class AdminSettingsController extends Controller
 {
     public function __construct(
         private readonly SettingsService $settingsService,
+        private readonly AuditService $auditService,
     ) {}
 
+    /**
+     * @return JsonResponse
+     */
     public function index(): JsonResponse
     {
         return response()->json([
@@ -28,9 +33,15 @@ class AdminSettingsController extends Controller
         ]);
     }
 
+    /**
+     * @param  UpdateSettingsRequest $request
+     * @return JsonResponse
+     * @throws \Illuminate\Validation\ValidationException
+     */
     public function update(UpdateSettingsRequest $request): JsonResponse
     {
         $this->settingsService->setMany($request->all());
+        $this->auditService->log('settings.updated', null, [], $request->all());
 
         return response()->json([
             'success' => true,
@@ -40,6 +51,11 @@ class AdminSettingsController extends Controller
         ]);
     }
 
+    /**
+     * @param  UploadLogoRequest $request
+     * @return JsonResponse
+     * @throws \Illuminate\Validation\ValidationException
+     */
     public function uploadLogo(UploadLogoRequest $request): JsonResponse
     {
         $ext  = $request->file('logo')->getClientOriginalExtension();
@@ -56,6 +72,11 @@ class AdminSettingsController extends Controller
         ]);
     }
 
+    /**
+     * @param  UploadFaviconRequest $request
+     * @return JsonResponse
+     * @throws \Illuminate\Validation\ValidationException
+     */
     public function uploadFavicon(UploadFaviconRequest $request): JsonResponse
     {
         $ext  = $request->file('favicon')->getClientOriginalExtension();

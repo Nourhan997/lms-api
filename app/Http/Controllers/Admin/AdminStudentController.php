@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\AdminStudentDetailResource;
 use App\Http\Resources\Admin\AdminStudentResource;
 use App\Models\User;
+use App\Services\Admin\AuditService;
 use App\Services\Admin\UserManagementService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,11 +17,16 @@ class AdminStudentController extends Controller
 {
     public function __construct(
         private readonly UserManagementService $userManagementService,
+        private readonly AuditService $auditService,
     ) {}
 
+    /**
+     * @param  Request      $request
+     * @return JsonResponse
+     */
     public function index(Request $request): JsonResponse
     {
-        $filters  = $request->only(['search', 'status']);
+        $filters = $request->only(['search', 'status']);
         if ($request->has('has_enrollment')) {
             $filters['has_enrollment'] = $request->boolean('has_enrollment');
         }
@@ -40,6 +46,11 @@ class AdminStudentController extends Controller
         ]);
     }
 
+    /**
+     * @param  User         $user
+     * @return JsonResponse
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     */
     public function show(User $user): JsonResponse
     {
         $user = $this->userManagementService->getStudentProfile($user);
@@ -52,9 +63,16 @@ class AdminStudentController extends Controller
         ]);
     }
 
+    /**
+     * @param  User         $user
+     * @return JsonResponse
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     */
     public function suspend(User $user): JsonResponse
     {
+        $old  = ['is_active' => $user->is_active];
         $user = $this->userManagementService->suspend($user);
+        $this->auditService->log('user.suspended', $user, $old, ['is_active' => false]);
 
         return response()->json([
             'success' => true,
@@ -64,9 +82,16 @@ class AdminStudentController extends Controller
         ]);
     }
 
+    /**
+     * @param  User         $user
+     * @return JsonResponse
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     */
     public function activate(User $user): JsonResponse
     {
+        $old  = ['is_active' => $user->is_active];
         $user = $this->userManagementService->activate($user);
+        $this->auditService->log('user.activated', $user, $old, ['is_active' => true]);
 
         return response()->json([
             'success' => true,

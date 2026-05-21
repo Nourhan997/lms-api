@@ -9,6 +9,7 @@ use App\Http\Requests\Admin\StoreInstructorRequest;
 use App\Http\Requests\Admin\UpdateInstructorRequest;
 use App\Http\Resources\Admin\AdminInstructorResource;
 use App\Models\User;
+use App\Services\Admin\AuditService;
 use App\Services\Admin\UserManagementService;
 use Illuminate\Http\JsonResponse;
 
@@ -16,8 +17,12 @@ class AdminInstructorController extends Controller
 {
     public function __construct(
         private readonly UserManagementService $userManagementService,
+        private readonly AuditService $auditService,
     ) {}
 
+    /**
+     * @return JsonResponse
+     */
     public function index(): JsonResponse
     {
         $instructors = $this->userManagementService->getAllInstructors();
@@ -35,6 +40,11 @@ class AdminInstructorController extends Controller
         ]);
     }
 
+    /**
+     * @param  StoreInstructorRequest $request
+     * @return JsonResponse
+     * @throws \Illuminate\Validation\ValidationException
+     */
     public function store(StoreInstructorRequest $request): JsonResponse
     {
         $instructor = $this->userManagementService->createInstructor($request->validated());
@@ -47,6 +57,12 @@ class AdminInstructorController extends Controller
         ], 201);
     }
 
+    /**
+     * @param  UpdateInstructorRequest $request
+     * @param  User                    $user
+     * @return JsonResponse
+     * @throws \Illuminate\Validation\ValidationException
+     */
     public function update(UpdateInstructorRequest $request, User $user): JsonResponse
     {
         $instructor = $this->userManagementService->updateInstructor($user, $request->validated());
@@ -59,9 +75,16 @@ class AdminInstructorController extends Controller
         ]);
     }
 
+    /**
+     * @param  User         $user
+     * @return JsonResponse
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     */
     public function suspend(User $user): JsonResponse
     {
+        $old        = ['is_active' => $user->is_active];
         $instructor = $this->userManagementService->suspend($user);
+        $this->auditService->log('user.suspended', $instructor, $old, ['is_active' => false]);
 
         return response()->json([
             'success' => true,
@@ -71,9 +94,16 @@ class AdminInstructorController extends Controller
         ]);
     }
 
+    /**
+     * @param  User         $user
+     * @return JsonResponse
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     */
     public function activate(User $user): JsonResponse
     {
+        $old        = ['is_active' => $user->is_active];
         $instructor = $this->userManagementService->activate($user);
+        $this->auditService->log('user.activated', $instructor, $old, ['is_active' => true]);
 
         return response()->json([
             'success' => true,

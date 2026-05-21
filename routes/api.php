@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Admin\AdminAuditLogController;
 use App\Http\Controllers\Admin\AdminBlogController;
 use App\Http\Controllers\Admin\AdminSettingsController;
+use App\Http\Controllers\HealthController;
 use App\Http\Controllers\Admin\AdminContentController;
 use App\Http\Controllers\Admin\AdminCourseController;
 use App\Http\Controllers\Admin\AdminDashboardController;
@@ -29,6 +31,8 @@ use App\Http\Controllers\Student\PlacementController;
 use App\Http\Controllers\Student\PublicCourseController;
 use App\Http\Controllers\Student\StudentQuizController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('health', [HealthController::class, 'check']);
 
 Route::prefix('v1')->group(function (): void {
 
@@ -99,7 +103,7 @@ Route::prefix('v1')->group(function (): void {
         // Contents (nested under lessons)
         Route::post('lessons/{lesson}/contents/reorder', [AdminContentController::class, 'reorder']);
         Route::get('lessons/{lesson}/contents', [AdminContentController::class, 'index']);
-        Route::post('lessons/{lesson}/contents', [AdminContentController::class, 'store']);
+        Route::post('lessons/{lesson}/contents', [AdminContentController::class, 'store'])->middleware('throttle:uploads');
         Route::put('lessons/{lesson}/contents/{content}', [AdminContentController::class, 'update']);
         Route::delete('lessons/{lesson}/contents/{content}', [AdminContentController::class, 'destroy']);
 
@@ -115,8 +119,8 @@ Route::prefix('v1')->group(function (): void {
         // Settings
         Route::get('settings', [AdminSettingsController::class, 'index']);
         Route::put('settings', [AdminSettingsController::class, 'update']);
-        Route::post('settings/logo', [AdminSettingsController::class, 'uploadLogo']);
-        Route::post('settings/favicon', [AdminSettingsController::class, 'uploadFavicon']);
+        Route::post('settings/logo', [AdminSettingsController::class, 'uploadLogo'])->middleware('throttle:uploads');
+        Route::post('settings/favicon', [AdminSettingsController::class, 'uploadFavicon'])->middleware('throttle:uploads');
 
         // Dashboard and Reports (export before {student} to avoid conflicts)
         Route::get('dashboard', [AdminDashboardController::class, 'overview']);
@@ -127,6 +131,9 @@ Route::prefix('v1')->group(function (): void {
         Route::get('reports/students', [AdminDashboardController::class, 'students']);
         Route::get('reports/export/students', [AdminDashboardController::class, 'exportStudents']);
         Route::get('reports/export/payments', [AdminDashboardController::class, 'exportPayments']);
+
+        // Audit Logs
+        Route::get('audit-logs', [AdminAuditLogController::class, 'index']);
 
         // Students
         Route::get('students', [AdminStudentController::class, 'index']);
@@ -208,7 +215,7 @@ Route::prefix('v1')->group(function (): void {
         Route::get('lessons/{lesson}/contents', [InstructorContentController::class, 'index'])
             ->middleware('course.owner');
         Route::post('lessons/{lesson}/contents', [InstructorContentController::class, 'store'])
-            ->middleware('course.owner');
+            ->middleware(['course.owner', 'throttle:uploads']);
         Route::put('lessons/{lesson}/contents/{content}', [InstructorContentController::class, 'update'])
             ->middleware('course.owner');
         Route::delete('lessons/{lesson}/contents/{content}', [InstructorContentController::class, 'destroy'])
