@@ -1,59 +1,86 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# LMS API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Backend API for a white-label Learning Management System. Built with Laravel 12, MySQL, Redis, and Docker.
 
-## About Laravel
+## What it does
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- Students take a placement test, enroll in courses, track progress, and earn certificates
+- Instructors create courses with video, audio, PDF, and text content
+- Admins manage students, courses, payments, and platform branding
+- Certificates are generated as PDFs and publicly verifiable by unique ID
+- Emails and PDF generation run in the background via queues
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Stack
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Laravel 12** — PHP 8.2
+- **MySQL 8.0** — primary database
+- **Redis** — cache, sessions, queues
+- **Docker** — containerized environment
+- **GitHub Actions** — CI/CD pipeline
 
-## Learning Laravel
+## Quick start
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+Requires Docker Desktop.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```bash
+git clone https://github.com/nourhanfa97/lms-api.git
+cd lms-api
+cp .env.example .env
+docker-compose up -d --build
+docker exec -it lms_app php artisan key:generate
+docker exec -it lms_app php artisan migrate --seed
+```
 
-## Laravel Sponsors
+API runs at `http://localhost:8000`
+Email preview at `http://localhost:8025`
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Test accounts
 
-### Premium Partners
+```
+Admin      → admin@lms.test / password
+Instructor → instructor@lms.test / password
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## Tests
 
-## Contributing
+```bash
+docker exec -it lms_app php artisan test
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+121 tests, 516 assertions — all passing.
 
-## Code of Conduct
+## CI/CD
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Every push to `main` runs all tests, builds a Docker image, and pushes to Docker Hub.
 
-## Security Vulnerabilities
+```
+nourhanfa97/lms-api:latest
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## API
 
-## License
+80+ endpoints across 5 route groups:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```
+/api/v1/public/...      → no auth required
+/api/v1/auth/...        → register, login, logout
+/api/v1/student/...     → enrollment, progress, certificates
+/api/v1/instructor/...  → course management
+/api/v1/admin/...       → full platform management
+/api/health             → health check
+```
+
+Every response follows the same structure:
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Success",
+  "meta": {}
+}
+```
+
+## Built by
+
+[Nour](https://github.com/nourhanfa97) — Programi Tech, Muscat, Oman
